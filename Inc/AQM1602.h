@@ -15,6 +15,7 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 #define AQM1602_CHARS_PER_LINE  16
 #define AQM1602_LINES           2
+#define AQM1602_NEWLINE_TOKEN   '\n'
 
 #define AQM1602_DEV_ADDRESS     0x7C
 #define AQM1602_CTRL_CMD        0x00
@@ -32,6 +33,7 @@ void AQM1602_locate(uint8_t, uint8_t);
 void AQM1602_puts(const char*);
 void AQM1602_putsLine(uint8_t, const char*);
 void AQM1602_putsLine_IT(uint8_t, const char*);
+void AQM1602_putsLines_IT(const char*);
 
 void I2C2_TxCpltCallback(void);
 

@@ -69,7 +69,7 @@ void AQM1602_putsLine(uint8_t line, const char* str)
         return;
     }
 
-    AQM1602_locate(line-1, 0);
+    AQM1602_locate(0, line-1);
 
     uint8_t DataBytes[1 + AQM1602_CHARS_PER_LINE];
     size_t len = strlen(str);
@@ -107,7 +107,7 @@ void AQM1602_putsLine_IT(uint8_t line, const char* str)
 
     // Locate cursor
     CtrlBytes[0] = AQM1602_CTRL_CMD;
-    DataBytes[0] = 0x80 + (line - 1);
+    DataBytes[0] = 0x80 + (line - 1) * 0x40;
 
     size_t len = strlen(str);
     if (len > AQM1602_CHARS_PER_LINE)
@@ -127,6 +127,68 @@ void AQM1602_putsLine_IT(uint8_t line, const char* str)
     }
 
     AQM1602_send_IT((uint8_t *) CtrlBytes, (uint8_t *) DataBytes, 1 + AQM1602_CHARS_PER_LINE);
+}
+
+void AQM1602_putsLines_IT(const char* str)
+{
+    uint8_t CtrlBytes[1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES];
+    uint8_t DataBytes[1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES];
+
+    // Locate cursor
+    CtrlBytes[0] = AQM1602_CTRL_CMD;
+    DataBytes[0] = 0x80;
+
+    // Count lines
+    size_t len = strlen(str);
+    uint8_t lines = 1;
+    uint8_t chars_per_line = 0;
+    size_t data_num = 1;
+    for(size_t i = 0; i < len; ++i)
+    {
+        if (*(str + i) == AQM1602_NEWLINE_TOKEN)
+        {
+            // New line
+            ++lines;
+            if (lines > AQM1602_LINES)
+            {
+                printf("AQM1602_putsLines_IT error : lines must be less than %d\r\n", AQM1602_LINES);
+                return;
+            }
+
+            // fill space
+            for (size_t j = chars_per_line; j < AQM1602_CHARS_PER_LINE; ++j)
+            {
+                CtrlBytes[data_num] = AQM1602_CTRL_DAT;
+                DataBytes[data_num] = ' ';
+                ++data_num;
+            }
+            chars_per_line = 0;
+
+            // Locate cursor next line
+            CtrlBytes[data_num] = AQM1602_CTRL_CMD;
+            DataBytes[data_num] = 0x80 + (lines - 1) * 0x40;
+            ++data_num;
+        }
+        else
+        {
+            ++chars_per_line;
+            if (chars_per_line > AQM1602_CHARS_PER_LINE)
+                continue;
+
+            CtrlBytes[data_num] = AQM1602_CTRL_DAT;
+            DataBytes[data_num] = *(str + i);
+            ++data_num;
+        }
+    }
+
+    // fill space of last line
+    for (size_t i = data_num; i < 1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES; ++i)
+    {
+        CtrlBytes[i] = AQM1602_CTRL_DAT;
+        DataBytes[i] = ' ';
+    }
+
+    AQM1602_send_IT((uint8_t *) CtrlBytes, (uint8_t *) DataBytes, 1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES);
 }
 
 
@@ -155,13 +217,13 @@ static void AQM1602_send(uint8_t CtrlByteWithoutCo, uint8_t DataByte)
 
 static void AQM1602_send_IT(uint8_t *CtrlBytesWithoutCo, uint8_t *DataBytes, size_t BytesLength)
 {
-    if (BytesLength > (1 + AQM1602_CHARS_PER_LINE))
+    if (BytesLength > (1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES))
     {
         printf("AQM1602_send_IT error : BytesLength must below %d\r\n", 1 + AQM1602_CHARS_PER_LINE);
         return;
     }
 
-    static volatile uint8_t data[2 * (1 + AQM1602_CHARS_PER_LINE)];
+    static volatile uint8_t data[2 * (1 + AQM1602_CHARS_PER_LINE * AQM1602_LINES)];
     for (size_t i = 0; i < BytesLength; ++i)
     {
         data[2 * i] = *(CtrlBytesWithoutCo + i) | 0x80;  // Add "Co" bit

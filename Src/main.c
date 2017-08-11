@@ -112,11 +112,17 @@ int main(void)
       HAL_Delay(100);
       time += 0.1f;
 
-      char str_AQM1602[AQM1602_CHARS_PER_LINE + 1];
-      snprintf(str_AQM1602, sizeof(str_AQM1602) / sizeof(str_AQM1602[0]), "time=%.1f", time);
+      //char str_AQM1602[AQM1602_CHARS_PER_LINE + 1];
+      //snprintf(str_AQM1602, sizeof(str_AQM1602) / sizeof(str_AQM1602[0]), "time=%.1f", time);
+      //AQM1602_putsLine(2, str_AQM1602);
+      //AQM1602_putsLine_IT(2, str_AQM1602);
 
-      //AQM1602_putsLine(1, str_AQM1602);
-      AQM1602_putsLine_IT(1, str_AQM1602);
+
+      char str_AQM1602[AQM1602_CHARS_PER_LINE * AQM1602_LINES + 1];
+      snprintf(str_AQM1602, sizeof(str_AQM1602) / sizeof(str_AQM1602[0]),
+              "Hello world\ntime=%.1f", time);
+      AQM1602_putsLines_IT(str_AQM1602);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

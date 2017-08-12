@@ -8,6 +8,9 @@ This code uses the non-blocking(interrupt) function of I2C, so it is no need to 
 ## MCU board
 [NUCLEO-F411RE](http://www.st.com/en/evaluation-tools/nucleo-f411re.html)
 
+## LCD
+[AQM1602Y-RN-GBW](http://akizukidenshi.com/catalog/g/gP-11916/)
+
 ## IDE
 System Workbench for STM32 (SW4STM32) + STM32CubeMX + STM32CubeF4
 
